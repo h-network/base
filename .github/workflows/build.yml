@@ -1,0 +1,82 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 h-network
+#
+# Build the dev image and publish it to GHCR.
+#
+# Runs on every push to main (publishes :main and :latest) and on version tags
+# (publishes :X.Y.Z, :X and :latest). Free on this repo — Actions minutes and
+# GHCR storage are unmetered for public repositories.
+#
+# A newly published GHCR package defaults to PRIVATE even from a public repo,
+# and consumers get `denied` until it is made public by hand in the repo's
+# package settings. That has been done for this package; a fork will have to do
+# it again.
+name: build
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # arm64 is built under emulation on the amd64 runner; the agent-CLI
+      # installers are the slow part and they run twice, once per platform.
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # GITHUB_TOKEN is minted per-run and scoped by the permissions block
+      # above — no secret to configure. Skipped on pull_request, which builds
+      # but does not push.
+      - name: Log in to GHCR
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Tags must be semver (vX.Y.Z) to publish a version tag — a bare `v1`
+      # matches none of the patterns below and would publish nothing.
+      - name: Derive tags
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # The Dockerfile refetches the agent CLIs on every build, so the
+          # cache saves the apt layers, not the CLI layer.
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

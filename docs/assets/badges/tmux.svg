@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="131" height="20" role="img" aria-label="tmux: configured">
+  <title>tmux: configured</title>
+  <rect width="49" height="20" fill="#555"/>
+  <rect x="49" width="82" height="20" fill="#1BB91F"/>
+  <g fill="#fff" font-family="Verdana,DejaVu Sans,Geneva,sans-serif" font-size="11" font-weight="normal" letter-spacing="0.0" text-anchor="middle">
+    <text x="24.5" y="14.0">tmux</text>
+    <text x="90.0" y="14.0">configured</text>
+  </g>
+</svg>

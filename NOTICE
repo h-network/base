@@ -1,0 +1,31 @@
+h-network/base
+Copyright 2026 h-network
+
+This product is licensed under the Apache License, Version 2.0. A copy of the
+License is distributed with this product in the file LICENSE, and is also
+available at http://www.apache.org/licenses/LICENSE-2.0
+
+--------------------------------------------------------------------------------
+
+The Apache License above covers only the files in this repository: the
+Dockerfile, compose file, helper scripts, tmux configuration, workflow and
+documentation.
+
+It does NOT cover the third-party software that the build installs into the
+container image. That software is redistributed under its own terms, which are
+unchanged by this licence:
+
+  * Ubuntu 24.04 and the packages installed from its archives — a mix of
+    licences, recorded per package in /usr/share/doc/<package>/copyright inside
+    the image.
+
+  * GitHub CLI (gh), installed from GitHub's apt repository.
+
+  * Claude Code (claude), Codex (codex) and Antigravity (agy), installed by
+    their vendors' published install scripts and governed by the terms each
+    vendor supplies with them. These are not open-source components; consult
+    Anthropic, OpenAI and Google respectively before redistributing an image
+    built from this repository.
+
+Publishing an image built from this repository redistributes all of the above.
+The Apache licence granted here does not grant any rights in it.

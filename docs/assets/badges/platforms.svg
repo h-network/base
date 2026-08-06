@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="257" height="28" role="img" aria-label="PLATFORMS: AMD64 + ARM64">
+  <title>PLATFORMS: AMD64 + ARM64</title>
+  <rect width="116" height="28" fill="#555"/>
+  <rect x="116" width="141" height="28" fill="#64748B"/>
+  <g fill="#fff" font-family="Verdana,DejaVu Sans,Geneva,sans-serif" font-size="10" font-weight="bold" letter-spacing="1.5" text-anchor="middle">
+    <text x="58.8" y="17.5">PLATFORMS</text>
+    <text x="187.2" y="17.5">AMD64 + ARM64</text>
+  </g>
+</svg>

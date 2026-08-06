@@ -1,0 +1,42 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 h-network
+#
+# Build and run the dev container.
+#
+#   docker compose build
+#   docker compose run --rm dev
+#
+# No host directories are bind-mounted: work lives in git, cloned inside the
+# container. Named volumes persist auth and any in-progress work across
+# containers — and, unlike bind mounts, they inherit the image's uid, so there
+# is no ownership mismatch to manage.
+#
+# For a completely throwaway container, delete the volumes block.
+
+services:
+  dev:
+    build: .
+    # Same name as the published image, deliberately: a local build then
+    # replaces the pulled one instead of sitting beside it under a second tag.
+    # A bare `base:latest` is what lets a stale local image shadow the
+    # registry without any error.
+    image: ghcr.io/h-network/base:latest
+    hostname: h-dev
+
+    volumes:
+      - workspace:/workspace                    # survives `--rm`
+      - claude:/home/ubuntu/.claude             # stay logged in
+      - codex:/home/ubuntu/.codex
+      - gh:/home/ubuntu/.config/gh
+
+    environment:
+      - TERM=xterm-256color
+
+    stdin_open: true
+    tty: true
+
+volumes:
+  workspace:
+  claude:
+  codex:
+  gh:
