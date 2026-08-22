@@ -71,7 +71,7 @@ how you refresh them. A published tag is frozen at whenever it was built.
 | | |
 |---|---|
 | **Agent CLIs** | `claude`, `codex`, `agy` |
-| **Helpers** | `startAgent`, `setupConfigDir` |
+| **Helpers** | `startAgent`, `setupConfigDir`, `smokeTest` |
 | **Dev** | `git`, `gh`, `python3`, `python3-venv`, `python3-pip`, `build-essential` |
 | **Shell** | `tmux` (configured), `vim-tiny`, `openssh-client`, `sudo` |
 | **Base** | `ubuntu:24.04`, UTF-8 locale |
@@ -125,6 +125,20 @@ copies the logins too.
 
 It sets `CLAUDE_CONFIG_DIR` and `CODEX_HOME` together, and applies to the
 calling shell only — a new shell is back on the defaults.
+
+### `smokeTest` — check the entry points still exist
+
+```bash
+smokeTest        # exits 0, or lists what is broken and exits 1
+```
+
+Runs during the build and fails it, so an image that publishes has at least
+been shown to have a working `startAgent`, all three CLIs on `PATH`, and config
+files that parse. Re-runnable inside a container that is already up.
+
+It proves only that those things exist and start — no model, no credentials, no
+network — and it says so in its own output, because a green build here is easy
+to read as more assurance than it is.
 
 ## 🔍 Details worth knowing
 
@@ -216,6 +230,7 @@ claude-settings.json        → ~/.claude/settings.json
 codex-config.toml           → ~/.codex/config.toml
 startAgent.sh               → /usr/local/bin/startAgent
 setupconfigdir.sh           → /etc/profile.d/ (a shell function, so it can export)
+smoketest.sh                → /usr/local/bin/smokeTest, and run during the build
 .github/workflows/build.yml builds and publishes to GHCR
 docs/assets/banner.svg      the banner above
 docs/assets/badges/         the badges above — self-hosted, not shields.io, so

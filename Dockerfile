@@ -90,7 +90,9 @@ RUN tmp="$(mktemp)" \
 USER root
 COPY startAgent.sh /usr/local/bin/startAgent
 COPY setupconfigdir.sh /etc/profile.d/setupconfigdir.sh
-RUN chmod 755 /usr/local/bin/startAgent && chmod 644 /etc/profile.d/setupconfigdir.sh
+COPY smoketest.sh /usr/local/bin/smokeTest
+RUN chmod 755 /usr/local/bin/startAgent /usr/local/bin/smokeTest \
+    && chmod 644 /etc/profile.d/setupconfigdir.sh
 
 # Apache-2.0 section 4(a) asks that recipients of the work get a copy of the
 # licence. The scripts above are the work, so the licence ships beside them.
@@ -111,6 +113,11 @@ COPY --chown=ubuntu:ubuntu codex-config.toml /home/ubuntu/.codex/config.toml
 
 # tmux config — last, so editing it rebuilds only this cheap layer
 COPY --chown=ubuntu:ubuntu tmux.conf /home/ubuntu/.tmux.conf
+
+# Fail the build if the entry points a consumer calls are missing or broken.
+# Runs as ubuntu, after everything is in place, so it checks the image as it
+# will actually be used — $HOME and PATH included.
+RUN smokeTest
 
 # The CI build gets these from docker/metadata-action; declaring them here means
 # a local `docker compose build` produces the same metadata.
