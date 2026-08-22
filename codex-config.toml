@@ -1,0 +1,19 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 h-network
+#
+# Codex defaults for unattended use, copied to ~/.codex/config.toml.
+#
+# The update prompt is the one that actually stops an agent: its default action
+# runs a global npm install inside the container, and until someone answers it,
+# nothing else happens.
+check_for_update_on_startup = false
+
+# startAgent passes --dangerously-bypass-approvals-and-sandbox, which covers
+# both of the settings below. They are repeated here on purpose: a `codex`
+# started directly, without the wrapper, would otherwise stop at an approval
+# prompt that nobody in a headless container is going to answer.
+#
+# danger-full-access is the container's own posture, not a preference — the
+# image is the sandbox, so a second sandbox inside it buys nothing.
+approval_policy = "never"
+sandbox_mode = "danger-full-access"

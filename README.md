@@ -162,6 +162,41 @@ python3 -m venv .venv && .venv/bin/pip install <package>
 </details>
 
 <details open>
+<summary><b>The first-run dialogs are already answered</b></summary>
+
+Each CLI opens on a dialog the first time it runs and waits for a keypress.
+With nobody at the terminal that is indistinguishable from an idle agent — no
+error, no exit code, no log line — so the image answers them in advance:
+
+| dialog | key | file |
+|---|---|---|
+| theme picker | `hasCompletedOnboarding` | `~/.claude.json` |
+| bypass-permissions acceptance | `skipDangerousModePermissionPrompt` | `~/.claude/settings.json` |
+| "Update available!" | `check_for_update_on_startup` | `~/.codex/config.toml` |
+| "Do you trust this folder?" for `/workspace` | `hasTrustDialogAccepted` | `~/.claude.json` |
+
+`~/.claude/settings.json` also turns off telemetry and error reporting, blanks
+the `attribution` fields so nothing is added to commit messages or PR bodies,
+and denies `mcp__*` so a cloned repository cannot introduce tool surface you
+did not approve. `~/.codex/config.toml` keeps `approval_policy` and
+`sandbox_mode` set even though `startAgent` passes equivalents — a `codex` run
+directly, without the wrapper, would otherwise stall.
+
+None of this is a login; the CLIs still ask you to authenticate.
+
+> [!NOTE]
+> A consumer that ships its own `settings.json` **replaces** this file rather
+> than merging with it, and so stops inheriting anything added here later —
+> including suppression for a dialog that does not exist yet. That is the
+> intended escape hatch, but it is worth choosing deliberately.
+
+The trust prompt is keyed by absolute path, so only `/workspace` — the image's
+`WORKDIR`, and where an agent starts unless told otherwise — is answered ahead
+of time. Working anywhere else prompts once on first use.
+
+</details>
+
+<details open>
 <summary><b>No credentials are baked into the image</b></summary>
 
 Authenticate inside the container (`claude`, `codex`, `gh auth login`); the
@@ -177,6 +212,8 @@ LICENSE                     Apache 2.0
 NOTICE                      what the licence covers, and what it does not
 compose.yaml                build + run, named volumes
 tmux.conf                   copied to ~/.tmux.conf
+claude-settings.json        → ~/.claude/settings.json
+codex-config.toml           → ~/.codex/config.toml
 startAgent.sh               → /usr/local/bin/startAgent
 setupconfigdir.sh           → /etc/profile.d/ (a shell function, so it can export)
 .github/workflows/build.yml builds and publishes to GHCR

@@ -65,6 +65,25 @@ RUN curl -fsSL https://claude.ai/install.sh | bash \
 
 ENV PATH="/home/ubuntu/.local/bin:/home/ubuntu/.codex/bin:${PATH}"
 
+# Claude Code keeps first-run state in ~/.claude.json and treats a missing file
+# as a first run: the theme picker comes up before the CLI is usable, which a
+# non-interactive container cannot answer.
+#
+# The "Do you trust this folder?" prompt is keyed by absolute path, so it cannot
+# be answered for directories that do not exist yet — but WORKDIR below is
+# /workspace, which is where an agent starts unless told otherwise, and that one
+# is known now. Anywhere else still prompts on first use.
+#
+# Merged rather than written flat, because this file is also where the CLI
+# later keeps machineID, the logged-in account and per-project history —
+# overwriting it wholesale is only safe while it is still empty.
+RUN tmp="$(mktemp)" \
+    && { [ -s "$HOME/.claude.json" ] && cat "$HOME/.claude.json" || echo '{}'; } \
+       | jq '.hasCompletedOnboarding = true \
+             | .projects["/workspace"].hasTrustDialogAccepted = true \
+             | .projects["/workspace"].hasCompletedProjectOnboarding = true' > "$tmp" \
+    && mv "$tmp" "$HOME/.claude.json"
+
 # Helpers. startAgent goes on PATH; setupConfigDir has to be a shell function
 # (it exports into the calling shell), so it is installed to /etc/profile.d and
 # picked up by any login shell.
@@ -79,6 +98,16 @@ RUN chmod 755 /usr/local/bin/startAgent && chmod 644 /etc/profile.d/setupconfigd
 # own terms.
 COPY LICENSE NOTICE /usr/share/doc/h-network-base/
 USER ubuntu
+
+# CLI defaults for unattended use. Both CLIs stop on a first-run dialog that a
+# headless container cannot answer — the theme picker and the bypass-permissions
+# acceptance for claude, the update prompt for codex — and a stopped agent looks
+# identical to an idle one: no error, no exit code, no log line.
+#
+# These are defaults, not policy: a consumer that ships its own settings.json
+# replaces this file wholesale.
+COPY --chown=ubuntu:ubuntu claude-settings.json /home/ubuntu/.claude/settings.json
+COPY --chown=ubuntu:ubuntu codex-config.toml /home/ubuntu/.codex/config.toml
 
 # tmux config — last, so editing it rebuilds only this cheap layer
 COPY --chown=ubuntu:ubuntu tmux.conf /home/ubuntu/.tmux.conf
