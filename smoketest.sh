@@ -37,9 +37,10 @@ check() {
 
 echo "smokeTest: checking the image's entry points"
 
-# The wrapper every consumer calls. --help is the only subcommand that neither
-# launches a CLI nor needs credentials.
+# The wrappers a consumer calls. --help is the only subcommand of each that
+# neither launches a CLI nor needs credentials.
 check "startAgent --help exits 0" startAgent --help
+check "probeProvider --help exits 0" probeProvider --help
 
 # On PATH, not merely installed: the CLIs live under $HOME and reach PATH via
 # an ENV line in the Dockerfile, which is exactly the kind of thing that breaks

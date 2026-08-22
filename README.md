@@ -71,7 +71,7 @@ how you refresh them. A published tag is frozen at whenever it was built.
 | | |
 |---|---|
 | **Agent CLIs** | `claude`, `codex`, `agy` |
-| **Helpers** | `startAgent`, `setupConfigDir`, `smokeTest` |
+| **Helpers** | `startAgent`, `setupConfigDir`, `probeProvider`, `smokeTest` |
 | **Dev** | `git`, `gh`, `python3`, `python3-venv`, `python3-pip`, `build-essential` |
 | **Shell** | `tmux` (configured), `vim-tiny`, `openssh-client`, `sudo` |
 | **Base** | `ubuntu:24.04`, UTF-8 locale |
@@ -107,6 +107,37 @@ for claude and agy, `--dangerously-bypass-approvals-and-sandbox` for codex.
 Only claude can restrict its tool set from the command line — agy and codex have
 no equivalent, so they run with their full set.
 
+#### Pointing claude at a local inference endpoint
+
+Supported for **`claude` only**. Describe the intent and `startAgent` translates
+it into the several `ANTHROPIC_*` variables claude actually reads:
+
+```bash
+AGENT_PROVIDER_URL=http://10.0.0.5:8000 \
+AGENT_PROVIDER_MODEL=some-model-id \
+startAgent claude
+```
+
+| variable | |
+|---|---|
+| `AGENT_PROVIDER_URL` | endpoint base; a trailing `/v1` is stripped here, because claude appends `/v1/messages` itself |
+| `AGENT_PROVIDER_MODEL` | model id, byte for byte as the endpoint serves it |
+| `AGENT_PROVIDER_SMALL_MODEL` | optional, defaults to `AGENT_PROVIDER_MODEL` |
+| `AGENT_PROVIDER_TOKEN` | optional; a placeholder is sent, since claude will not start without one |
+
+All three model tiers are set from these, because claude picks a tier
+internally — setting only some leaves the rest pointing at vendor model names
+the endpoint does not serve, which claude reports as a *model* error. Any
+inherited `ANTHROPIC_*` variables are cleared first, so a leftover key from a
+previous subscription cannot quietly win.
+
+> [!WARNING]
+> **`codex` and `agy` refuse to start when `AGENT_PROVIDER_URL` is set**, and
+> exit non-zero. Neither can be pointed at a local endpoint, and starting them
+> anyway would run the agent against the vendor — different cost, different
+> destination for your code, and nothing on screen to say so. Setting that
+> variable states an intent, and failing it is an error rather than a fallback.
+
 ### `setupConfigDir` — a second config dir, seeded from your profile
 
 ```bash
@@ -125,6 +156,26 @@ copies the logins too.
 
 It sets `CLAUDE_CONFIG_DIR` and `CODEX_HOME` together, and applies to the
 calling shell only — a new shell is back on the defaults.
+
+### `probeProvider` — see what a local endpoint serves, and whether claude can use it
+
+```bash
+probeProvider http://10.0.0.5:8000              # list, then verify with the first id
+probeProvider http://10.0.0.5:8000 some-model   # verify with a specific one
+```
+
+Lists model ids from `/v1/models` (vLLM and anything else OpenAI-shaped),
+falling back to `/api/tags` for ollama, then POSTs to `/v1/messages` to check
+claude can actually talk to it — serving models and implementing the route
+claude uses are not the same thing.
+
+The ids are printed rather than described because they have to match exactly;
+an ollama tag like `gpt-oss:20b` mistyped as `gpt-oss-20b` comes back later as
+a model error rather than as a typo.
+
+It waits up to 90 seconds (`PROBE_TIMEOUT`) and reports "no answer" separately
+from "not usable": a model loading cold can take tens of seconds, and treating
+that as a verdict on the endpoint sends you to debug the wrong thing.
 
 ### `smokeTest` — check the entry points still exist
 
@@ -231,6 +282,7 @@ codex-config.toml           → ~/.codex/config.toml
 startAgent.sh               → /usr/local/bin/startAgent
 setupconfigdir.sh           → /etc/profile.d/ (a shell function, so it can export)
 smoketest.sh                → /usr/local/bin/smokeTest, and run during the build
+probeprovider.sh            → /usr/local/bin/probeProvider
 .github/workflows/build.yml builds and publishes to GHCR
 docs/assets/banner.svg      the banner above
 docs/assets/badges/         the badges above — self-hosted, not shields.io, so
