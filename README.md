@@ -71,7 +71,7 @@ how you refresh them. A published tag is frozen at whenever it was built.
 | | |
 |---|---|
 | **Agent CLIs** | `claude`, `codex`, `agy` |
-| **Helpers** | `startAgent`, `setupConfigDir`, `probeProvider`, `smokeTest` |
+| **Helpers** | `startAgent`, `setupConfigDir`, `seedProfile`, `probeProvider`, `smokeTest` |
 | **Dev** | `git`, `gh`, `python3`, `python3-venv`, `python3-pip`, `build-essential` |
 | **Shell** | `tmux` (configured), `vim-tiny`, `openssh-client`, `sudo` |
 | **Base** | `ubuntu:24.04`, UTF-8 locale |
@@ -156,6 +156,32 @@ copies the logins too.
 
 It sets `CLAUDE_CONFIG_DIR` and `CODEX_HOME` together, and applies to the
 calling shell only — a new shell is back on the defaults.
+
+### `seedProfile` — a config dir for one CLI, for callers that are not a shell
+
+```bash
+seedProfile claude work                      # → CLAUDE_CONFIG_DIR=~/.claude-work
+seedProfile codex work                       # → CODEX_HOME=~/.codex-work
+eval "$(seedProfile --export claude work)"
+```
+
+A CLI pointed at a fresh directory does **not** fall back to the defaults in
+`~/.claude` — measured, not assumed: `CLAUDE_CONFIG_DIR=~/.claude-test claude`
+stops on the theme picker. An automated caller that creates a directory and
+starts an agent against it therefore gets a process that waits forever for a
+keypress, and looks exactly like an agent with nothing to say.
+
+`seedProfile` copies the defaults out of the live config dir at runtime, so
+there is one source of truth rather than a second copy that drifts. Existing
+files are never overwritten, and credentials are not copied — a seeded profile
+is unauthenticated by design.
+
+It differs from `setupConfigDir` in who it is for: that one is a shell function
+that exports into your shell and moves both CLIs together; this one takes a
+single CLI, changes no environment, and prints the variable to set.
+
+`agy` is not supported and says so — it resolves its state relative to `HOME`
+under `~/.gemini/antigravity-cli/`, with no variable to point it elsewhere.
 
 ### `probeProvider` — see what a local endpoint serves, and whether claude can use it
 
@@ -283,6 +309,7 @@ startAgent.sh               → /usr/local/bin/startAgent
 setupconfigdir.sh           → /etc/profile.d/ (a shell function, so it can export)
 smoketest.sh                → /usr/local/bin/smokeTest, and run during the build
 probeprovider.sh            → /usr/local/bin/probeProvider
+seedprofile.sh              → /usr/local/bin/seedProfile
 .github/workflows/build.yml builds and publishes to GHCR
 docs/assets/banner.svg      the banner above
 docs/assets/badges/         the badges above — self-hosted, not shields.io, so

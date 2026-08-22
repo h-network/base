@@ -41,6 +41,7 @@ echo "smokeTest: checking the image's entry points"
 # neither launches a CLI nor needs credentials.
 check "startAgent --help exits 0" startAgent --help
 check "probeProvider --help exits 0" probeProvider --help
+check "seedProfile --help exits 0" seedProfile --help
 
 # On PATH, not merely installed: the CLIs live under $HOME and reach PATH via
 # an ENV line in the Dockerfile, which is exactly the kind of thing that breaks

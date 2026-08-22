@@ -92,8 +92,9 @@ COPY startAgent.sh /usr/local/bin/startAgent
 COPY setupconfigdir.sh /etc/profile.d/setupconfigdir.sh
 COPY smoketest.sh /usr/local/bin/smokeTest
 COPY probeprovider.sh /usr/local/bin/probeProvider
+COPY seedprofile.sh /usr/local/bin/seedProfile
 RUN chmod 755 /usr/local/bin/startAgent /usr/local/bin/smokeTest \
-                /usr/local/bin/probeProvider \
+                /usr/local/bin/probeProvider /usr/local/bin/seedProfile \
     && chmod 644 /etc/profile.d/setupconfigdir.sh
 
 # Apache-2.0 section 4(a) asks that recipients of the work get a copy of the
