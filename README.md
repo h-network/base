@@ -14,7 +14,7 @@
 ![Docker: multi-arch](docs/assets/badges/docker.svg)
 ![Agents: claude codex agy](docs/assets/badges/agents.svg)
 ![tmux: configured](docs/assets/badges/tmux.svg)
-![Image: ~450 MB](docs/assets/badges/size.svg)
+![Image: ~480 MB](docs/assets/badges/size.svg)
 
 **A general-purpose development container: the Claude, Codex and Antigravity CLIs<br/>plus everyday dev tooling, on Ubuntu 24.04.**
 
@@ -76,7 +76,7 @@ how you refresh them. A published tag is frozen at whenever it was built.
 | **Shell** | `tmux` (configured), `vim-tiny`, `openssh-client`, `sudo` |
 | **Base** | `ubuntu:24.04`, UTF-8 locale |
 
-Roughly 450 MB.
+Roughly 480 MB.
 
 ## 🧰 Helpers
 

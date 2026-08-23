@@ -89,4 +89,4 @@ if __name__ == "__main__":
     badge("Docker", "multi-arch", "#2496ED", f"{out}/docker.svg", F)
     badge("Agents", "claude codex agy", "#8B5CF6", f"{out}/agents.svg", F)
     badge("tmux", "configured", "#1BB91F", f"{out}/tmux.svg", F)
-    badge("Image", "~450 MB", "#6366F1", f"{out}/size.svg", F)
+    badge("Image", "~480 MB", "#6366F1", f"{out}/size.svg", F)
