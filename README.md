@@ -138,6 +138,15 @@ previous subscription cannot quietly win.
 > destination for your code, and nothing on screen to say so. Setting that
 > variable states an intent, and failing it is an error rather than a fallback.
 
+A successful run against a local endpoint still prints this once, on stderr:
+
+```
+[claude-code:unrecognized_model] {"model":"…","query_source":"generate_session_title"}
+```
+
+It is claude noting that the model is not one of its own while naming the
+session, not a failure — the run continues and answers normally.
+
 ### `setupConfigDir` — a second config dir, seeded from your profile
 
 ```bash
