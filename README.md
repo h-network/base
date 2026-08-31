@@ -63,8 +63,8 @@ Published for `linux/amd64` and `linux/arm64`, so Docker pulls whichever matches
 the machine. `:latest` tracks `main`; version tags (`:1`, `:1.2`, `:1.2.3`) are
 published from git tags and are what you want to depend on — they do not move.
 
-Building always fetches the current release of each agent CLI, so a rebuild is
-how you refresh them. A published tag is frozen at whenever it was built.
+Agent CLI versions (`claude`, `codex`, `agy`) are pinned by `h-agent`'s installer.
+A published tag is frozen at whenever it was built.
 
 ## 📦 What's inside
 

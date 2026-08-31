@@ -55,14 +55,11 @@ RUN echo "ubuntu ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/ubuntu \
     && chmod 0440 /etc/sudoers.d/ubuntu \
     && mkdir -p /workspace && chown ubuntu:ubuntu /workspace
 
-# Agent CLIs and h-agent, via their curl installers, as the run user.
-# These always fetch the latest release, so a rebuild refreshes them.
+# h-agent and pinned agent CLIs (claude, codex, agy), via h-agent's installer, as the run user.
+# CLI versions are pinned by h-agent's installer rather than fetched unpinned on rebuild.
 USER ubuntu
 ENV HOME=/home/ubuntu
-RUN curl -fsSL https://claude.ai/install.sh | bash \
-    && curl -fsSL https://chatgpt.com/codex/install.sh | CODEX_NON_INTERACTIVE=1 sh \
-    && curl -fsSL https://antigravity.google/cli/install.sh | bash \
-    && curl -fsSL https://raw.githubusercontent.com/h-network/h-agent/main/install.sh | H_AGENT_INSTALL_CLIS=0 bash
+RUN curl -fsSL https://raw.githubusercontent.com/h-network/h-agent/main/install.sh | bash
 
 ENV PATH="/home/ubuntu/.local/bin:/home/ubuntu/.codex/bin:${PATH}"
 

@@ -76,7 +76,7 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          # The Dockerfile refetches the agent CLIs on every build, so the
-          # cache saves the apt layers, not the CLI layer.
+          # CLI versions are pinned by h-agent's installer, and the cache
+          # saves the apt and install layers.
           cache-from: type=gha
           cache-to: type=gha,mode=max
