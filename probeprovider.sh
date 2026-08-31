@@ -45,7 +45,7 @@ case "${1:-}" in
     -h|--help|help|"") usage; [ -z "${1:-}" ] && exit 2 || exit 0 ;;
 esac
 
-# Same stripping as startAgent: claude appends /v1/messages itself, so a base
+# Same stripping as h-agent: claude appends /v1/messages itself, so a base
 # URL carrying /v1 would produce /v1/v1/messages.
 url="${1%/}"; url="${url%/v1}"; url="${url%/}"
 want_model="${2:-}"
@@ -139,7 +139,7 @@ if printf '%s' "$resp" | jq -e '.type == "message"' >/dev/null 2>&1; then
     echo
     echo "  AGENT_PROVIDER_URL=$url"
     echo "  AGENT_PROVIDER_MODEL=$probe_model"
-    echo "  startAgent claude"
+    echo "  h-agent claude"
     exit 0
 fi
 

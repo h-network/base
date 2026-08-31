@@ -8,7 +8,7 @@
 # nothing else happens.
 check_for_update_on_startup = false
 
-# startAgent passes --dangerously-bypass-approvals-and-sandbox, which covers
+# h-agent passes --dangerously-bypass-approvals-and-sandbox, which covers
 # both of the settings below. They are repeated here on purpose: a `codex`
 # started directly, without the wrapper, would otherwise stop at an approval
 # prompt that nobody in a headless container is going to answer.

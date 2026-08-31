@@ -5,7 +5,7 @@
 # smokeTest — check that the things consumers call still exist and start.
 #
 # Runs during the build and fails it. The failure mode this exists to catch is
-# a silent one: if startAgent is renamed, moved, or stops accepting the
+# a silent one: if h-agent is renamed, moved, or stops accepting the
 # arguments it used to, the build still succeeds and the image still publishes.
 # What a consumer then sees is a terminal that opens, an agent that never
 # speaks, and no error anywhere — indistinguishable from an unauthenticated
@@ -39,7 +39,7 @@ echo "smokeTest: checking the image's entry points"
 
 # The wrappers a consumer calls. --help is the only subcommand of each that
 # neither launches a CLI nor needs credentials.
-check "startAgent --help exits 0" startAgent --help
+check "h-agent --help exits 0" h-agent --help
 check "probeProvider --help exits 0" probeProvider --help
 check "seedProfile --help exits 0" seedProfile --help
 

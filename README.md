@@ -71,7 +71,7 @@ how you refresh them. A published tag is frozen at whenever it was built.
 | | |
 |---|---|
 | **Agent CLIs** | `claude`, `codex`, `agy` |
-| **Helpers** | `startAgent`, `setupConfigDir`, `seedProfile`, `probeProvider`, `smokeTest` |
+| **Helpers** | `h-agent`, `setupConfigDir`, `seedProfile`, `probeProvider`, `smokeTest` |
 | **Dev** | `git`, `gh`, `python3`, `python3-venv`, `python3-pip`, `build-essential` |
 | **Shell** | `tmux` (configured), `vim-tiny`, `openssh-client`, `sudo` |
 | **Base** | `ubuntu:24.04`, UTF-8 locale |
@@ -80,17 +80,17 @@ Roughly 480 MB.
 
 ## 🧰 Helpers
 
-### `startAgent` — launch a CLI with the container's defaults
+### `h-agent` — launch a CLI with the container's defaults
 
 ```bash
-startAgent           # $AGENT_CLI, default claude
-startAgent codex
-startAgent claude --resume     # extra arguments pass through
+h-agent           # $AGENT_CLI, default claude
+h-agent codex
+h-agent claude --resume     # extra arguments pass through
 ```
 
 Each CLI spells "don't stop to ask me" differently — `--dangerously-skip-permissions`
 for claude and agy, `--dangerously-bypass-approvals-and-sandbox` for codex.
-`startAgent` knows which is which so you don't have to.
+`h-agent` knows which is which so you don't have to.
 
 > [!WARNING]
 > **Approval prompts are skipped by default**, because the flags above are meant
@@ -109,13 +109,13 @@ no equivalent, so they run with their full set.
 
 #### Pointing claude at a local inference endpoint
 
-Supported for **`claude` only**. Describe the intent and `startAgent` translates
+Supported for **`claude` only**. Describe the intent and `h-agent` translates
 it into the several `ANTHROPIC_*` variables claude actually reads:
 
 ```bash
 AGENT_PROVIDER_URL=http://10.0.0.5:8000 \
 AGENT_PROVIDER_MODEL=some-model-id \
-startAgent claude
+h-agent claude
 ```
 
 | variable | |
@@ -219,7 +219,7 @@ smokeTest        # exits 0, or lists what is broken and exits 1
 ```
 
 Runs during the build and fails it, so an image that publishes has at least
-been shown to have a working `startAgent`, all three CLIs on `PATH`, and config
+been shown to have a working `h-agent`, all three CLIs on `PATH`, and config
 files that parse. Re-runnable inside a container that is already up.
 
 It proves only that those things exist and start — no model, no credentials, no
@@ -279,7 +279,7 @@ error, no exit code, no log line — so the image answers them in advance:
 the `attribution` fields so nothing is added to commit messages or PR bodies,
 and denies `mcp__*` so a cloned repository cannot introduce tool surface you
 did not approve. `~/.codex/config.toml` keeps `approval_policy` and
-`sandbox_mode` set even though `startAgent` passes equivalents — a `codex` run
+`sandbox_mode` set even though `h-agent` passes equivalents — a `codex` run
 directly, without the wrapper, would otherwise stall.
 
 None of this is a login; the CLIs still ask you to authenticate.
@@ -314,7 +314,6 @@ compose.yaml                build + run, named volumes
 tmux.conf                   copied to ~/.tmux.conf
 claude-settings.json        → ~/.claude/settings.json
 codex-config.toml           → ~/.codex/config.toml
-startAgent.sh               → /usr/local/bin/startAgent
 setupconfigdir.sh           → /etc/profile.d/ (a shell function, so it can export)
 smoketest.sh                → /usr/local/bin/smokeTest, and run during the build
 probeprovider.sh            → /usr/local/bin/probeProvider

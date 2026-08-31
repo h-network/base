@@ -55,13 +55,14 @@ RUN echo "ubuntu ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/ubuntu \
     && chmod 0440 /etc/sudoers.d/ubuntu \
     && mkdir -p /workspace && chown ubuntu:ubuntu /workspace
 
-# Agent CLIs, via their curl installers, as the run user.
+# Agent CLIs and h-agent, via their curl installers, as the run user.
 # These always fetch the latest release, so a rebuild refreshes them.
 USER ubuntu
 ENV HOME=/home/ubuntu
 RUN curl -fsSL https://claude.ai/install.sh | bash \
     && curl -fsSL https://chatgpt.com/codex/install.sh | CODEX_NON_INTERACTIVE=1 sh \
-    && curl -fsSL https://antigravity.google/cli/install.sh | bash
+    && curl -fsSL https://antigravity.google/cli/install.sh | bash \
+    && curl -fsSL https://raw.githubusercontent.com/h-network/h-agent/main/install.sh | H_AGENT_INSTALL_CLIS=0 bash
 
 ENV PATH="/home/ubuntu/.local/bin:/home/ubuntu/.codex/bin:${PATH}"
 
@@ -84,16 +85,15 @@ RUN tmp="$(mktemp)" \
              | .projects["/workspace"].hasCompletedProjectOnboarding = true' > "$tmp" \
     && mv "$tmp" "$HOME/.claude.json"
 
-# Helpers. startAgent goes on PATH; setupConfigDir has to be a shell function
-# (it exports into the calling shell), so it is installed to /etc/profile.d and
-# picked up by any login shell.
+# Helpers. setupConfigDir has to be a shell function (it exports into the
+# calling shell), so it is installed to /etc/profile.d and picked up by any
+# login shell.
 USER root
-COPY startAgent.sh /usr/local/bin/startAgent
 COPY setupconfigdir.sh /etc/profile.d/setupconfigdir.sh
 COPY smoketest.sh /usr/local/bin/smokeTest
 COPY probeprovider.sh /usr/local/bin/probeProvider
 COPY seedprofile.sh /usr/local/bin/seedProfile
-RUN chmod 755 /usr/local/bin/startAgent /usr/local/bin/smokeTest \
+RUN chmod 755 /usr/local/bin/smokeTest \
                 /usr/local/bin/probeProvider /usr/local/bin/seedProfile \
     && chmod 644 /etc/profile.d/setupconfigdir.sh
 
