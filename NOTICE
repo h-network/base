@@ -1,31 +1,37 @@
-h-network/base
-Copyright 2026 h-network
+This project is licensed by H-Network under the terms in `LICENSE` (Apache License 2.0).
 
-This product is licensed under the Apache License, Version 2.0. A copy of the
-License is distributed with this product in the file LICENSE, and is also
-available at http://www.apache.org/licenses/LICENSE-2.0
-
---------------------------------------------------------------------------------
-
-The Apache License above covers only the files in this repository: the
-Dockerfile, compose file, helper scripts, tmux configuration, workflow and
-documentation.
+The Apache License covers the original files in this repository: the
+Dockerfile, compose file, helper scripts, tmux configuration, workflow,
+and documentation.
 
 It does NOT cover the third-party software that the build installs into the
-container image. That software is redistributed under its own terms, which are
-unchanged by this licence:
+container image. That software is redistributed under its own separate terms,
+which are NOT covered by this project's license:
 
-  * Ubuntu 24.04 and the packages installed from its archives — a mix of
-    licences, recorded per package in /usr/share/doc/<package>/copyright inside
-    the image.
+- Ubuntu 24.04 and the packages installed from its archives — a mix of
+  licenses, recorded per package in /usr/share/doc/<package>/copyright
+  inside the container image.
 
-  * GitHub CLI (gh), installed from GitHub's apt repository.
+- GitHub CLI (`gh`), installed from GitHub's apt repository (https://github.com/cli/cli) —
+  MIT License. Copyright (c) GitHub, Inc.
 
-  * Claude Code (claude), Codex (codex) and Antigravity (agy), installed by
-    their vendors' published install scripts and governed by the terms each
-    vendor supplies with them. These are not open-source components; consult
-    Anthropic, OpenAI and Google respectively before redistributing an image
-    built from this repository.
+- Claude Code (`claude`) (https://github.com/anthropics/claude-code) —
+  Proprietary, vendor-provided software subject to Anthropic's Commercial Terms
+  of Service (https://www.anthropic.com/legal/commercial-terms).
+  Copyright (c) Anthropic PBC
+
+- OpenAI Codex CLI (`codex`) (https://github.com/openai/codex) —
+  Apache License 2.0. Copyright (c) 2025 OpenAI
+
+- Google Antigravity CLI (`agy`) (https://antigravity.google/) —
+  Proprietary, vendor-provided software subject to the Google Antigravity
+  Terms of Service (https://antigravity.google/terms).
+  Copyright (c) Google LLC
+
+This project does not modify the source of the above components — they are
+installed as unmodified dependencies within the container image.
 
 Publishing an image built from this repository redistributes all of the above.
-The Apache licence granted here does not grant any rights in it.
+The Apache license granted here covers only this repository's original code
+and does not grant any rights in the third-party software bundled within the
+image.
