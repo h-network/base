@@ -1,50 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 360" width="1200" height="360" role="img" aria-label="h-network/base — a general-purpose dev container for the agent CLIs">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#0C1220"/>
-      <stop offset="1" stop-color="#08170F"/>
-    </linearGradient>
-    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#4ADE80"/>
-      <stop offset="1" stop-color="#22C55E"/>
-    </linearGradient>
-    <radialGradient id="glow" cx="0.22" cy="0.0" r="0.9">
-      <stop offset="0" stop-color="#22C55E" stop-opacity="0.20"/>
-      <stop offset="1" stop-color="#22C55E" stop-opacity="0"/>
-    </radialGradient>
-  </defs>
-
-  <rect width="1200" height="360" rx="18" fill="url(#bg)"/>
-  <rect width="1200" height="360" rx="18" fill="url(#glow)"/>
-  <rect x="1.5" y="1.5" width="1197" height="357" rx="17" fill="none" stroke="#16351F" stroke-width="2"/>
-
-  <!-- logo mark: stacked image layers -->
-  <rect x="80" y="70" width="64" height="64" rx="16" fill="url(#accent)"/>
-  <g fill="#08170F">
-    <rect x="96" y="86" width="32" height="8" rx="3"/>
-    <rect x="96" y="100" width="32" height="8" rx="3"/>
-    <rect x="96" y="114" width="32" height="8" rx="3" opacity="0.55"/>
-  </g>
-
-  <!-- wordmark + tagline -->
-  <text x="164" y="112" font-family="'Segoe UI', Helvetica, Arial, sans-serif" font-size="58" font-weight="800"><tspan fill="#6B8577">h-network/</tspan><tspan fill="#F8FAFC">base</tspan></text>
-  <text x="166" y="152" font-family="'Segoe UI', Helvetica, Arial, sans-serif" font-size="22" fill="#9CB3A4">A general-purpose dev container &#183; Claude, Codex and Antigravity</text>
-
-  <!-- motif: what the image is built out of, ending in the published tag -->
-  <g font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="17" font-weight="600">
-    <rect x="80" y="222" width="158" height="48" rx="10" fill="#0E1F16" stroke="#22C55E" stroke-opacity="0.6"/>
-    <text x="159" y="252" fill="#86EFAC" text-anchor="middle">ubuntu 24.04</text>
-    <text x="250" y="252" fill="#3F5D4C" text-anchor="middle" font-size="20">&#8594;</text>
-    <rect x="262" y="222" width="148" height="48" rx="10" fill="#0E1F16" stroke="#22C55E" stroke-opacity="0.6"/>
-    <text x="336" y="252" fill="#86EFAC" text-anchor="middle">dev tooling</text>
-    <text x="422" y="252" fill="#3F5D4C" text-anchor="middle" font-size="20">&#8594;</text>
-    <rect x="434" y="222" width="240" height="48" rx="10" fill="#0E1F16" stroke="#22C55E" stroke-opacity="0.6"/>
-    <text x="554" y="252" fill="#86EFAC" text-anchor="middle">claude &#183; codex &#183; agy</text>
-    <text x="686" y="252" fill="#3F5D4C" text-anchor="middle" font-size="20">&#8594;</text>
-    <rect x="698" y="222" width="264" height="48" rx="10" fill="url(#accent)"/>
-    <text x="830" y="252" fill="#08170F" text-anchor="middle" font-weight="700">ghcr.io/h-network/base</text>
-  </g>
-
-  <!-- footer strapline -->
-  <text x="82" y="322" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="13" letter-spacing="2" fill="#86EFAC">AMD64 &#183; ARM64 &#183; UID 1000&#160;&#8212;&#160;docker run -it --rm ghcr.io/h-network/base</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="212" viewBox="0 0 860 212">
+<rect width="100%" height="100%" fill="#0d1117"/>
+<text x="10" y="30" font-family="Menlo, Consolas, monospace" font-size="20" fill="#22C55E" xml:space="preserve">  ██████╗  █████╗ ███████╗███████╗</text>
+<text x="10" y="54" font-family="Menlo, Consolas, monospace" font-size="20" fill="#22C55E" xml:space="preserve">  ██╔══██╗██╔══██╗██╔════╝██╔════╝</text>
+<text x="10" y="78" font-family="Menlo, Consolas, monospace" font-size="20" fill="#22C55E" xml:space="preserve">  ██████╔╝███████║███████╗█████╗  </text>
+<text x="10" y="102" font-family="Menlo, Consolas, monospace" font-size="20" fill="#22C55E" xml:space="preserve">  ██╔══██╗██╔══██║╚════██║██╔══╝  </text>
+<text x="10" y="126" font-family="Menlo, Consolas, monospace" font-size="20" fill="#22C55E" xml:space="preserve">  ██████╔╝██║  ██║███████║███████╗</text>
+<text x="10" y="150" font-family="Menlo, Consolas, monospace" font-size="20" fill="#22C55E" xml:space="preserve">  ╚═════╝ ╚═╝  ╚═╝╚══════╝╚══════╝</text>
+<text x="10" y="184" font-family="Menlo, Consolas, monospace" font-size="20" fill="#56d4dd" xml:space="preserve">  h-network/base // general-purpose dev container for the agent CLIs</text>
 </svg>
