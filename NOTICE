@@ -1,23 +1,37 @@
-This project is licensed by H-Network under the terms in `LICENSE`.
+This project is licensed by H-Network under the terms in `LICENSE` (Apache License 2.0).
 
-It depends on the following third-party components, which are licensed
-separately under their own terms and are NOT covered by this project's
-license:
+The Apache License covers the original files in this repository: the
+Dockerfile, compose file, helper scripts, tmux configuration, workflow,
+and documentation.
 
-- Claude Code (https://github.com/anthropics/claude-code) — Proprietary,
-  vendor-provided software subject to Anthropic's Commercial Terms of Service
-  (https://www.anthropic.com/legal/commercial-terms)
+It does NOT cover the third-party software that the build installs into the
+container image. That software is redistributed under its own separate terms,
+which are NOT covered by this project's license:
+
+- Ubuntu 24.04 and the packages installed from its archives — a mix of
+  licenses, recorded per package in /usr/share/doc/<package>/copyright
+  inside the container image.
+
+- GitHub CLI (`gh`), installed from GitHub's apt repository (https://github.com/cli/cli) —
+  MIT License. Copyright (c) GitHub, Inc.
+
+- Claude Code (`claude`) (https://github.com/anthropics/claude-code) —
+  Proprietary, vendor-provided software subject to Anthropic's Commercial Terms
+  of Service (https://www.anthropic.com/legal/commercial-terms).
   Copyright (c) Anthropic PBC
 
-- OpenAI Codex CLI (https://github.com/openai/codex) — Apache License 2.0
-  Copyright (c) 2025 OpenAI
+- OpenAI Codex CLI (`codex`) (https://github.com/openai/codex) —
+  Apache License 2.0. Copyright (c) 2025 OpenAI
 
-- Google Antigravity CLI (`agy`) (https://antigravity.google/) — Proprietary,
-  vendor-provided software subject to the Google Antigravity Terms of Service
-  (https://antigravity.google/terms)
+- Google Antigravity CLI (`agy`) (https://antigravity.google/) —
+  Proprietary, vendor-provided software subject to the Google Antigravity
+  Terms of Service (https://antigravity.google/terms).
   Copyright (c) Google LLC
 
-This project does not modify or redistribute the source of the above
-component(s) — it is used as an unmodified dependency. No rights are
-claimed over it, and its own license terms continue to apply to it in
-full.
+This project does not modify the source of the above components — they are
+installed as unmodified dependencies within the container image.
+
+Publishing an image built from this repository redistributes all of the above.
+The Apache license granted here covers only this repository's original code
+and does not grant any rights in the third-party software bundled within the
+image.
