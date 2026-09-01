@@ -100,8 +100,8 @@ RUN chmod 755 /usr/local/bin/startAgent /usr/local/bin/smokeTest \
 # Apache-2.0 section 4(a) asks that recipients of the work get a copy of the
 # licence. The scripts above are the work, so the licence ships beside them.
 # NOTICE records that the rest of the image is third-party software under its
-# own terms.
-COPY LICENSE NOTICE /usr/share/doc/h-network-base/
+# own terms. TRADEMARKS.md defines the project's trademark policy.
+COPY LICENSE NOTICE TRADEMARKS.md /usr/share/doc/h-network-base/
 USER ubuntu
 
 # CLI defaults for unattended use. Both CLIs stop on a first-run dialog that a

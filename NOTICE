@@ -1,31 +1,23 @@
-h-network/base
-Copyright 2026 h-network
+This project is licensed by H-Network under the terms in `LICENSE`.
 
-This product is licensed under the Apache License, Version 2.0. A copy of the
-License is distributed with this product in the file LICENSE, and is also
-available at http://www.apache.org/licenses/LICENSE-2.0
+It depends on the following third-party components, which are licensed
+separately under their own terms and are NOT covered by this project's
+license:
 
---------------------------------------------------------------------------------
+- Claude Code (https://github.com/anthropics/claude-code) — Proprietary,
+  vendor-provided software subject to Anthropic's Commercial Terms of Service
+  (https://www.anthropic.com/legal/commercial-terms)
+  Copyright (c) Anthropic PBC
 
-The Apache License above covers only the files in this repository: the
-Dockerfile, compose file, helper scripts, tmux configuration, workflow and
-documentation.
+- OpenAI Codex CLI (https://github.com/openai/codex) — Apache License 2.0
+  Copyright (c) 2025 OpenAI
 
-It does NOT cover the third-party software that the build installs into the
-container image. That software is redistributed under its own terms, which are
-unchanged by this licence:
+- Google Antigravity CLI (`agy`) (https://antigravity.google/) — Proprietary,
+  vendor-provided software subject to the Google Antigravity Terms of Service
+  (https://antigravity.google/terms)
+  Copyright (c) Google LLC
 
-  * Ubuntu 24.04 and the packages installed from its archives — a mix of
-    licences, recorded per package in /usr/share/doc/<package>/copyright inside
-    the image.
-
-  * GitHub CLI (gh), installed from GitHub's apt repository.
-
-  * Claude Code (claude), Codex (codex) and Antigravity (agy), installed by
-    their vendors' published install scripts and governed by the terms each
-    vendor supplies with them. These are not open-source components; consult
-    Anthropic, OpenAI and Google respectively before redistributing an image
-    built from this repository.
-
-Publishing an image built from this repository redistributes all of the above.
-The Apache licence granted here does not grant any rights in it.
+This project does not modify or redistribute the source of the above
+component(s) — it is used as an unmodified dependency. No rights are
+claimed over it, and its own license terms continue to apply to it in
+full.

@@ -310,6 +310,7 @@ compose volumes persist it.
 Dockerfile                  the image
 LICENSE                     Apache 2.0
 NOTICE                      what the licence covers, and what it does not
+TRADEMARKS.md               trademark policy for the project name
 compose.yaml                build + run, named volumes
 tmux.conf                   copied to ~/.tmux.conf
 claude-settings.json        → ~/.claude/settings.json
@@ -341,12 +342,13 @@ releases — the image is pulled from GHCR.
 
 [Apache License 2.0](LICENSE). Every file in this repository carries an
 `SPDX-License-Identifier: Apache-2.0` header, and the image declares
-`org.opencontainers.image.licenses=Apache-2.0`.
+`org.opencontainers.image.licenses=Apache-2.0`. Brand names and marks are
+governed by [`TRADEMARKS.md`](TRADEMARKS.md).
 
 That covers this repository's own files — the Dockerfile, scripts and config.
 It does **not** cover what the build installs into the image: Ubuntu's packages,
 `gh`, and the three agent CLIs all keep their own terms. [`NOTICE`](NOTICE) has
-the details, and both files ship inside the image at
+the details, and all three files ship inside the image at
 `/usr/share/doc/h-network-base/`.
 
 > [!NOTE]
