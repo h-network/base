@@ -5,7 +5,7 @@
 # smokeTest — check that the things consumers call still exist and start.
 #
 # Runs during the build and fails it. The failure mode this exists to catch is
-# a silent one: if startAgent is renamed, moved, or stops accepting the
+# a silent one: if h-agent is renamed, moved, or stops accepting the
 # arguments it used to, the build still succeeds and the image still publishes.
 # What a consumer then sees is a terminal that opens, an agent that never
 # speaks, and no error anywhere — indistinguishable from an unauthenticated
@@ -37,11 +37,13 @@ check() {
 
 echo "smokeTest: checking the image's entry points"
 
-# The wrappers a consumer calls. --help is the only subcommand of each that
-# neither launches a CLI nor needs credentials.
-check "startAgent --help exits 0" startAgent --help
-check "probeProvider --help exits 0" probeProvider --help
+# The wrappers a consumer calls, installed from the h-agent project. --help is
+# the one subcommand of each that neither launches a CLI nor needs credentials.
+# probeProvider is now a subcommand of h-agent rather than its own command.
+check "h-agent --help exits 0" h-agent --help
+check "h-agent probeProvider --help exits 0" h-agent probeProvider --help
 check "seedProfile --help exits 0" seedProfile --help
+check "setupConfigDir --help exits 0" setupConfigDir --help
 
 # On PATH, not merely installed: the CLIs live under $HOME and reach PATH via
 # an ENV line in the Dockerfile, which is exactly the kind of thing that breaks

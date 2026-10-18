@@ -71,7 +71,7 @@ how you refresh them. A published tag is frozen at whenever it was built.
 | | |
 |---|---|
 | **Agent CLIs** | `claude`, `codex`, `agy` |
-| **Helpers** | `startAgent`, `setupConfigDir`, `seedProfile`, `probeProvider`, `smokeTest` |
+| **Helpers** | `h-agent`, `seedProfile`, `setupConfigDir`, `smokeTest` — from [h-agent](https://github.com/h-network/h-agent) |
 | **Dev** | `git`, `gh`, `python3`, `python3-venv`, `python3-pip`, `build-essential` |
 | **Shell** | `tmux` (configured), `vim-tiny`, `openssh-client`, `sudo` |
 | **Base** | `ubuntu:24.04`, UTF-8 locale |
@@ -80,17 +80,23 @@ Roughly 480 MB.
 
 ## 🧰 Helpers
 
-### `startAgent` — launch a CLI with the container's defaults
+The helper commands are the [h-agent](https://github.com/h-network/h-agent)
+project, installed into the image at build time rather than maintained here —
+so an h-agent release is picked up by rebuilding (see
+[Imported projects](#-imported-projects)). h-agent is licensed separately under
+PolyForm Noncommercial 1.0.0.
+
+### `h-agent` — launch a CLI with the container's defaults
 
 ```bash
-startAgent           # $AGENT_CLI, default claude
-startAgent codex
-startAgent claude --resume     # extra arguments pass through
+h-agent           # $AGENT_CLI, default claude
+h-agent codex
+h-agent claude --resume     # extra arguments pass through
 ```
 
 Each CLI spells "don't stop to ask me" differently — `--dangerously-skip-permissions`
 for claude and agy, `--dangerously-bypass-approvals-and-sandbox` for codex.
-`startAgent` knows which is which so you don't have to.
+`h-agent` knows which is which so you don't have to.
 
 > [!WARNING]
 > **Approval prompts are skipped by default**, because the flags above are meant
@@ -109,13 +115,13 @@ no equivalent, so they run with their full set.
 
 #### Pointing claude at a local inference endpoint
 
-Supported for **`claude` only**. Describe the intent and `startAgent` translates
+Supported for **`claude` only**. Describe the intent and `h-agent` translates
 it into the several `ANTHROPIC_*` variables claude actually reads:
 
 ```bash
 AGENT_PROVIDER_URL=http://10.0.0.5:8000 \
 AGENT_PROVIDER_MODEL=some-model-id \
-startAgent claude
+h-agent claude
 ```
 
 | variable | |
@@ -147,13 +153,36 @@ A successful run against a local endpoint still prints this once, on stderr:
 It is claude noting that the model is not one of its own while naming the
 session, not a failure — the run continues and answers normally.
 
+#### Command capture — a local log of what the agent ran
+
+For claude and codex, `h-agent` records session boundaries and shell commands
+to a local JSON Lines log, one record per hook event (`SessionStart`,
+`SessionEnd`, and `PreToolUse` scoped to `Bash`). It is **on by default**.
+
+```bash
+AGENT_NAME=researcher h-agent claude   # tag this instance in the log
+h-agent --log                          # print the log
+h-agent --log claude                   # filter to one CLI, name, or session id
+```
+
+| variable | |
+|---|---|
+| `AGENT_CAPTURE` | `1` (default) logs hook events, `0` disables (claude and codex) |
+| `AGENT_CAPTURE_FILE` | log path (default `~/.local/state/h-agent/commands.jsonl`) |
+| `AGENT_NAME` | instance label recorded as `name` in each entry |
+
+Commands and metadata only — prompts and tool output are never logged. The
+hooks are injected per launch and write nothing under `~/.claude` or `~/.codex`.
+The log is created mode `600`, but it is plaintext and a logged command can
+contain a secret.
+
 ### `setupConfigDir` — a second config dir, seeded from your profile
 
 ```bash
-setupConfigDir work          # → ~/.claude-work + ~/.codex-work
-setupConfigDir work --same   # ...and copy the existing logins across
-setupConfigDir               # show what this shell is using
-setupConfigDir default       # back to ~/.claude and ~/.codex
+eval "$(setupConfigDir work)"          # → ~/.claude-work + ~/.codex-work
+eval "$(setupConfigDir work --same)"   # ...and copy the existing logins across
+setupConfigDir                         # show what this shell is using
+eval "$(setupConfigDir default)"       # back to ~/.claude and ~/.codex
 ```
 
 Exporting `CLAUDE_CONFIG_DIR` by hand points the CLI at an **empty** directory,
@@ -163,8 +192,9 @@ and any `skills/`, `agents/` or `CLAUDE.md` beside them. Session history and
 logins are left behind, which is what makes the new dir separate; `--same`
 copies the logins too.
 
-It sets `CLAUDE_CONFIG_DIR` and `CODEX_HOME` together, and applies to the
-calling shell only — a new shell is back on the defaults.
+It changes `CLAUDE_CONFIG_DIR` and `CODEX_HOME` together. It prints the
+`export`/`unset` lines rather than exporting them itself, so you `eval` its
+output to switch the calling shell — and a new shell is back on the defaults.
 
 ### `seedProfile` — a config dir for one CLI, for callers that are not a shell
 
@@ -185,18 +215,18 @@ there is one source of truth rather than a second copy that drifts. Existing
 files are never overwritten, and credentials are not copied — a seeded profile
 is unauthenticated by design.
 
-It differs from `setupConfigDir` in who it is for: that one is a shell function
-that exports into your shell and moves both CLIs together; this one takes a
+It differs from `setupConfigDir` in who it is for: that one prints `export`
+lines you `eval` into your shell and moves both CLIs together; this one takes a
 single CLI, changes no environment, and prints the variable to set.
 
 `agy` is not supported and says so — it resolves its state relative to `HOME`
 under `~/.gemini/antigravity-cli/`, with no variable to point it elsewhere.
 
-### `probeProvider` — see what a local endpoint serves, and whether claude can use it
+### `h-agent probeProvider` — see what a local endpoint serves, and whether claude can use it
 
 ```bash
-probeProvider http://10.0.0.5:8000              # list, then verify with the first id
-probeProvider http://10.0.0.5:8000 some-model   # verify with a specific one
+h-agent probeProvider http://10.0.0.5:8000              # list, then verify with the first id
+h-agent probeProvider http://10.0.0.5:8000 some-model   # verify with a specific one
 ```
 
 Lists model ids from `/v1/models` (vLLM and anything else OpenAI-shaped),
@@ -219,7 +249,7 @@ smokeTest        # exits 0, or lists what is broken and exits 1
 ```
 
 Runs during the build and fails it, so an image that publishes has at least
-been shown to have a working `startAgent`, all three CLIs on `PATH`, and config
+been shown to have a working `h-agent`, all three CLIs on `PATH`, and config
 files that parse. Re-runnable inside a container that is already up.
 
 It proves only that those things exist and start — no model, no credentials, no
@@ -279,7 +309,7 @@ error, no exit code, no log line — so the image answers them in advance:
 the `attribution` fields so nothing is added to commit messages or PR bodies,
 and denies `mcp__*` so a cloned repository cannot introduce tool surface you
 did not approve. `~/.codex/config.toml` keeps `approval_policy` and
-`sandbox_mode` set even though `startAgent` passes equivalents — a `codex` run
+`sandbox_mode` set even though `h-agent` passes equivalents — a `codex` run
 directly, without the wrapper, would otherwise stall.
 
 None of this is a login; the CLIs still ask you to authenticate.
@@ -315,17 +345,18 @@ compose.yaml                build + run, named volumes
 tmux.conf                   copied to ~/.tmux.conf
 claude-settings.json        → ~/.claude/settings.json
 codex-config.toml           → ~/.codex/config.toml
-startAgent.sh               → /usr/local/bin/startAgent
-setupconfigdir.sh           → /etc/profile.d/ (a shell function, so it can export)
 smoketest.sh                → /usr/local/bin/smokeTest, and run during the build
-probeprovider.sh            → /usr/local/bin/probeProvider
-seedprofile.sh              → /usr/local/bin/seedProfile
 .github/workflows/build.yml builds and publishes to GHCR
 docs/assets/banner.svg      the banner above
 docs/assets/badges/         the badges above — self-hosted, not shields.io, so
                             the README fetches nothing outside github.com
 docs/assets/mkbadges.py     regenerates docs/assets/badges/
 ```
+
+The `h-agent`, `seedProfile`, `setupConfigDir` and `h-agent-capture` commands
+are not in this repository — the Dockerfile fetches them from the
+[h-agent](https://github.com/h-network/h-agent) repo at build time and installs
+them under `/usr/local/bin`.
 
 ## 🚢 Cutting a release
 
@@ -338,6 +369,27 @@ git tag v1.2.3 && git push origin v1.2.3
 `main` publishes `:main` and `:latest` on every push. There are no tarball
 releases — the image is pulled from GHCR.
 
+## 🧩 Imported projects
+
+This repository is small on purpose: it installs software it does not maintain,
+each fetched from its source at build time rather than vendored here. That is
+what makes a rebuild the way to refresh them.
+
+| project | what it provides | fetched from | license |
+|---|---|---|---|
+| [h-agent](https://github.com/h-network/h-agent) | `h-agent`, `seedProfile`, `setupConfigDir`, `h-agent-capture` | its repo (ref pinned by `H_AGENT_VERSION`, default `main`) | PolyForm Noncommercial 1.0.0 |
+| [Claude Code](https://github.com/anthropics/claude-code) | `claude` | `claude.ai/install.sh` | Anthropic Commercial Terms |
+| [Codex CLI](https://github.com/openai/codex) | `codex` | `chatgpt.com/codex/install.sh` | Apache 2.0 |
+| [Antigravity CLI](https://antigravity.google/) | `agy` | `antigravity.google/cli/install.sh` | Google Antigravity Terms |
+| [GitHub CLI](https://github.com/cli/cli) | `gh` | GitHub's apt repo | MIT |
+| [Ubuntu 24.04](https://ubuntu.com/) | base image + packages | Docker Hub / apt | mixed, per-package |
+
+`h-agent` is an h-network project like this one, but it is licensed on its own
+separate terms (PolyForm Noncommercial), not under this repository's Apache
+grant. To pin it to a specific release for a reproducible image, build with
+`--build-arg H_AGENT_VERSION=<tag-or-commit>`. Full terms are in
+[`NOTICE`](NOTICE).
+
 ## 📄 License
 
 [Apache License 2.0](LICENSE). Every file in this repository carries an
@@ -345,13 +397,14 @@ releases — the image is pulled from GHCR.
 `org.opencontainers.image.licenses=Apache-2.0`. Brand names and marks are
 governed by [`TRADEMARKS.md`](TRADEMARKS.md).
 
-That covers this repository's own files — the Dockerfile, scripts and config.
-It does **not** cover what the build installs into the image: Ubuntu's packages,
-`gh`, and the three agent CLIs all keep their own terms. [`NOTICE`](NOTICE) has
-the details, and all three files ship inside the image at
-`/usr/share/doc/h-network-base/`.
+That covers this repository's own files — the Dockerfile, the `smokeTest`
+script and config. It does **not** cover what the build installs into the image:
+Ubuntu's packages, `gh`, the [h-agent](#-imported-projects) helpers, and the
+three agent CLIs all keep their own terms. [`NOTICE`](NOTICE) has the details,
+and the licence files ship inside the image at `/usr/share/doc/h-network-base/`.
 
 > [!NOTE]
-> The agent CLIs are not open-source components. Publishing an image built from
-> this repository redistributes them, which the Apache grant here says nothing
-> about — check each vendor's terms first.
+> The agent CLIs are not open-source components, and the h-agent helpers are
+> licensed for noncommercial use only. Publishing an image built from this
+> repository redistributes all of them, which the Apache grant here says nothing
+> about — check each project's terms first.

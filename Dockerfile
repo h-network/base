@@ -84,18 +84,28 @@ RUN tmp="$(mktemp)" \
              | .projects["/workspace"].hasCompletedProjectOnboarding = true' > "$tmp" \
     && mv "$tmp" "$HOME/.claude.json"
 
-# Helpers. startAgent goes on PATH; setupConfigDir has to be a shell function
-# (it exports into the calling shell), so it is installed to /etc/profile.d and
-# picked up by any login shell.
+# Helpers come from the h-agent project, fetched from its repository at build
+# time (the same model as the agent CLIs above) rather than vendored here, so an
+# h-agent release is adopted simply by rebuilding this image. install.sh puts
+# h-agent, seedProfile, setupConfigDir, h-agent-capture and their shared library
+# on PATH under /usr/local/bin. Installing the CLIs and seeding their config are
+# this image's job, not h-agent's, so both are turned off — base already does
+# them above and below. install.sh is fetched from the same ref it installs, so
+# the installer and the installed scripts always match.
+#
+# H_AGENT_VERSION pins the ref: set it to an h-agent tag or commit for a
+# reproducible image. It tracks main by default. h-agent is licensed separately
+# (PolyForm Noncommercial 1.0.0) — see NOTICE.
 USER root
-COPY startAgent.sh /usr/local/bin/startAgent
-COPY setupconfigdir.sh /etc/profile.d/setupconfigdir.sh
+ARG H_AGENT_VERSION=main
+RUN curl -fsSL "https://raw.githubusercontent.com/h-network/h-agent/${H_AGENT_VERSION}/install.sh" \
+      | H_AGENT_INSTALL_CLIS=0 H_AGENT_SEED_CONFIG=0 \
+        H_AGENT_VERSION="${H_AGENT_VERSION}" PREFIX=/usr/local bash
+
+# smokeTest stays vendored here — it tests this image's own entry points, so it
+# belongs to base, not to h-agent.
 COPY smoketest.sh /usr/local/bin/smokeTest
-COPY probeprovider.sh /usr/local/bin/probeProvider
-COPY seedprofile.sh /usr/local/bin/seedProfile
-RUN chmod 755 /usr/local/bin/startAgent /usr/local/bin/smokeTest \
-                /usr/local/bin/probeProvider /usr/local/bin/seedProfile \
-    && chmod 644 /etc/profile.d/setupconfigdir.sh
+RUN chmod 755 /usr/local/bin/smokeTest
 
 # Apache-2.0 section 4(a) asks that recipients of the work get a copy of the
 # licence. The scripts above are the work, so the licence ships beside them.
