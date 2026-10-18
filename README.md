@@ -1,20 +1,20 @@
 <div align="center">
 
-<img src="docs/assets/banner.svg" alt="h-network/base — a general-purpose dev container for the agent CLIs" width="860">
+<img src="assets/banner.svg" alt="h-network/base — a general-purpose dev container for the agent CLIs" width="860">
 
 <br/>
 
-[![One image, every machine](docs/assets/badges/one-image.svg)](#-quick-start)
-[![Registry: ghcr.io](docs/assets/badges/registry.svg)](https://github.com/h-network/base/pkgs/container/base)
-![Platforms: amd64 + arm64](docs/assets/badges/platforms.svg)
-[![License: Apache 2.0](docs/assets/badges/license.svg)](LICENSE)
+[![One image, every machine](assets/badges/one-image.svg)](#-quick-start)
+[![Registry: ghcr.io](assets/badges/registry.svg)](https://github.com/h-network/base/pkgs/container/base)
+![Platforms: amd64 + arm64](assets/badges/platforms.svg)
+[![License: Apache 2.0](assets/badges/license.svg)](LICENSE)
 
 [![build](https://github.com/h-network/base/actions/workflows/build.yml/badge.svg)](https://github.com/h-network/base/actions/workflows/build.yml)
-![Ubuntu 24.04](docs/assets/badges/ubuntu.svg)
-![Docker: multi-arch](docs/assets/badges/docker.svg)
-![Agents: claude codex agy](docs/assets/badges/agents.svg)
-![tmux: configured](docs/assets/badges/tmux.svg)
-![Image: ~480 MB](docs/assets/badges/size.svg)
+![Ubuntu 24.04](assets/badges/ubuntu.svg)
+![Docker: multi-arch](assets/badges/docker.svg)
+![Agents: claude codex agy](assets/badges/agents.svg)
+![tmux: configured](assets/badges/tmux.svg)
+![Image: ~480 MB](assets/badges/size.svg)
 
 **A general-purpose development container: the Claude, Codex and Antigravity CLIs<br/>plus everyday dev tooling, on Ubuntu 24.04.**
 
@@ -63,18 +63,20 @@ Published for `linux/amd64` and `linux/arm64`, so Docker pulls whichever matches
 the machine. `:latest` tracks `main`; version tags (`:1`, `:1.2`, `:1.2.3`) are
 published from git tags and are what you want to depend on — they do not move.
 
-Building always fetches the current release of each agent CLI, so a rebuild is
-how you refresh them. A published tag is frozen at whenever it was built.
+The agent layer — the CLIs, their config and the helper commands — is installed
+by [h-agent](https://github.com/h-network/h-agent)'s installer and pinned by
+`H_AGENT_VERSION` (default `main`), so a rebuild refreshes it to whatever that
+ref specifies. A published tag is frozen at whenever it was built.
 
 ## 📦 What's inside
 
 | | |
 |---|---|
-| **Agent CLIs** | `claude`, `codex`, `agy` |
-| **Helpers** | `h-agent`, `seedProfile`, `setupConfigDir`, `smokeTest` — from [h-agent](https://github.com/h-network/h-agent) |
-| **Dev** | `git`, `gh`, `python3`, `python3-venv`, `python3-pip`, `build-essential` |
+| **Agent CLIs** | `claude`, `codex`, `agy` — via [h-agent](https://github.com/h-network/h-agent) |
+| **Agent helpers** | `h-agent`, `seedProfile`, `setupConfigDir`, `h-agent-capture` — via h-agent |
+| **Dev** | `git`, `gh`, `python3`, `python3-venv`, `python3-pip`, `build-essential`, `jq`, `perl` |
 | **Shell** | `tmux` (configured), `vim-tiny`, `openssh-client`, `sudo` |
-| **Base** | `ubuntu:24.04`, UTF-8 locale |
+| **Base** | `ubuntu:24.04`, UTF-8 locale; `smokeTest` for image self-check |
 
 Roughly 480 MB.
 
@@ -296,7 +298,8 @@ python3 -m venv .venv && .venv/bin/pip install <package>
 
 Each CLI opens on a dialog the first time it runs and waits for a keypress.
 With nobody at the terminal that is indistinguishable from an idle agent — no
-error, no exit code, no log line — so the image answers them in advance:
+error, no exit code, no log line — so h-agent's installer answers them in
+advance when it seeds the config:
 
 | dialog | key | file |
 |---|---|---|
@@ -305,20 +308,20 @@ error, no exit code, no log line — so the image answers them in advance:
 | "Update available!" | `check_for_update_on_startup` | `~/.codex/config.toml` |
 | "Do you trust this folder?" for `/workspace` | `hasTrustDialogAccepted` | `~/.claude.json` |
 
-`~/.claude/settings.json` also turns off telemetry and error reporting, blanks
-the `attribution` fields so nothing is added to commit messages or PR bodies,
-and denies `mcp__*` so a cloned repository cannot introduce tool surface you
-did not approve. `~/.codex/config.toml` keeps `approval_policy` and
-`sandbox_mode` set even though `h-agent` passes equivalents — a `codex` run
-directly, without the wrapper, would otherwise stall.
+That seeded `~/.claude/settings.json` also turns off telemetry and error
+reporting, blanks the `attribution` fields so nothing is added to commit
+messages or PR bodies, and denies `mcp__*` so a cloned repository cannot
+introduce tool surface you did not approve. `~/.codex/config.toml` sets
+`approval_policy` and `sandbox_mode` so a `codex` run started directly, without
+the `h-agent` wrapper, does not stall.
 
 None of this is a login; the CLIs still ask you to authenticate.
 
 > [!NOTE]
-> A consumer that ships its own `settings.json` **replaces** this file rather
-> than merging with it, and so stops inheriting anything added here later —
-> including suppression for a dialog that does not exist yet. That is the
-> intended escape hatch, but it is worth choosing deliberately.
+> The installer **merges** these defaults underneath whatever each file already
+> contains — existing values win and are never overwritten. Your own settings
+> survive; the flip side is that setting a key yourself also opts you out of any
+> default h-agent later changes for it.
 
 The trust prompt is keyed by absolute path, so only `/workspace` — the image's
 `WORKDIR`, and where an agent starts unless told otherwise — is answered ahead
@@ -342,21 +345,21 @@ LICENSE                     Apache 2.0
 NOTICE                      what the licence covers, and what it does not
 TRADEMARKS.md               trademark policy for the project name
 compose.yaml                build + run, named volumes
-tmux.conf                   copied to ~/.tmux.conf
-claude-settings.json        → ~/.claude/settings.json
-codex-config.toml           → ~/.codex/config.toml
-smoketest.sh                → /usr/local/bin/smokeTest, and run during the build
-.github/workflows/build.yml builds and publishes to GHCR
-docs/assets/banner.svg      the banner above
-docs/assets/badges/         the badges above — self-hosted, not shields.io, so
+h-app/smoketest.sh          → /usr/local/bin/smokeTest, and run during the build
+h-app/tmux.conf             → ~/.tmux.conf
+.github/workflows/build.yml builds, watches h-agent, and publishes to GHCR
+assets/banner.svg           the banner above
+assets/badges/              the badges above — self-hosted, not shields.io, so
                             the README fetches nothing outside github.com
-docs/assets/mkbadges.py     regenerates docs/assets/badges/
+assets/mkbadges.py          regenerates assets/badges/
 ```
 
-The `h-agent`, `seedProfile`, `setupConfigDir` and `h-agent-capture` commands
-are not in this repository — the Dockerfile fetches them from the
-[h-agent](https://github.com/h-network/h-agent) repo at build time and installs
-them under `/usr/local/bin`.
+base's own shipped files live in `h-app/`, mirroring the layout of the
+[h-agent](https://github.com/h-network/h-agent) repo. The agent CLIs, their
+config, and the `h-agent`/`seedProfile`/`setupConfigDir`/`h-agent-capture`
+commands are **not** in this repository — the Dockerfile runs h-agent's
+installer at build time, which places them under `~/.local/bin` and seeds the
+config into the run user's home.
 
 ## 🚢 Cutting a release
 
@@ -371,24 +374,28 @@ releases — the image is pulled from GHCR.
 
 ## 🧩 Imported projects
 
-This repository is small on purpose: it installs software it does not maintain,
-each fetched from its source at build time rather than vendored here. That is
-what makes a rebuild the way to refresh them.
+This repository is small on purpose: it prepares an environment and installs
+almost nothing agent-specific itself. The whole agent layer — the CLIs, their
+unattended config, and the launcher helpers — comes from **h-agent's installer**,
+run at build time and pinned to one h-agent commit. Everything else is Ubuntu
+packages. That split is what makes a rebuild the way to refresh things.
 
-| project | what it provides | fetched from | license |
+| project | what it provides | how it gets in | license |
 |---|---|---|---|
-| [h-agent](https://github.com/h-network/h-agent) | `h-agent`, `seedProfile`, `setupConfigDir`, `h-agent-capture` | its repo (ref pinned by `H_AGENT_VERSION`, default `main`) | PolyForm Noncommercial 1.0.0 |
-| [Claude Code](https://github.com/anthropics/claude-code) | `claude` | `claude.ai/install.sh` | Anthropic Commercial Terms |
-| [Codex CLI](https://github.com/openai/codex) | `codex` | `chatgpt.com/codex/install.sh` | Apache 2.0 |
-| [Antigravity CLI](https://antigravity.google/) | `agy` | `antigravity.google/cli/install.sh` | Google Antigravity Terms |
-| [GitHub CLI](https://github.com/cli/cli) | `gh` | GitHub's apt repo | MIT |
-| [Ubuntu 24.04](https://ubuntu.com/) | base image + packages | Docker Hub / apt | mixed, per-package |
+| [h-agent](https://github.com/h-network/h-agent) | the agent layer: `claude`/`codex`/`agy`, their unattended config, and `h-agent`/`seedProfile`/`setupConfigDir`/`h-agent-capture` | its `install.sh`, run at build (ref pinned by `H_AGENT_VERSION`, default `main`) | PolyForm Noncommercial 1.0.0 |
+| [Claude Code](https://github.com/anthropics/claude-code) | `claude` | via h-agent's installer (version pinned by h-agent) | Anthropic Commercial Terms |
+| [Codex CLI](https://github.com/openai/codex) | `codex` | via h-agent's installer (version pinned by h-agent) | Apache 2.0 |
+| [Antigravity CLI](https://antigravity.google/) | `agy` | via h-agent's installer (latest) | Google Antigravity Terms |
+| [GitHub CLI](https://github.com/cli/cli) | `gh` | GitHub's apt repo (installed by base) | MIT |
+| [Ubuntu 24.04](https://ubuntu.com/) | base image + packages | Docker Hub / apt (base) | mixed, per-package |
 
-`h-agent` is an h-network project like this one, but it is licensed on its own
-separate terms (PolyForm Noncommercial), not under this repository's Apache
-grant. To pin it to a specific release for a reproducible image, build with
-`--build-arg H_AGENT_VERSION=<tag-or-commit>`. Full terms are in
-[`NOTICE`](NOTICE).
+Because the CLIs now come through h-agent, `H_AGENT_VERSION` pins the **entire**
+agent layer — CLI versions, helper scripts and seeded config — to a single
+h-agent commit, so a given build is reproducible. Build with
+`--build-arg H_AGENT_VERSION=<tag-or-commit>` to pin it; it tracks `main`
+otherwise. `h-agent` is an h-network project like this one, but licensed on its
+own separate terms (PolyForm Noncommercial), not under this repository's Apache
+grant. Full terms are in [`NOTICE`](NOTICE).
 
 ## 📄 License
 
@@ -398,7 +405,7 @@ grant. To pin it to a specific release for a reproducible image, build with
 governed by [`TRADEMARKS.md`](TRADEMARKS.md).
 
 That covers this repository's own files — the Dockerfile, the `smokeTest`
-script and config. It does **not** cover what the build installs into the image:
+script and the tmux config. It does **not** cover what the build installs into the image:
 Ubuntu's packages, `gh`, the [h-agent](#-imported-projects) helpers, and the
 three agent CLIs all keep their own terms. [`NOTICE`](NOTICE) has the details,
 and the licence files ship inside the image at `/usr/share/doc/h-network-base/`.

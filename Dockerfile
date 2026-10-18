@@ -27,6 +27,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         locales \
         git \
         jq \
+        perl \
         openssh-client \
         tmux \
         vim-tiny \
@@ -55,77 +56,42 @@ RUN echo "ubuntu ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/ubuntu \
     && chmod 0440 /etc/sudoers.d/ubuntu \
     && mkdir -p /workspace && chown ubuntu:ubuntu /workspace
 
-# Agent CLIs, via their curl installers, as the run user.
-# These always fetch the latest release, so a rebuild refreshes them.
+# base installs nothing agent-specific itself. The three agent CLIs
+# (claude, codex, agy), their unattended config, and the h-agent launcher +
+# profile helpers all come from h-agent's installer, fetched from its repo at
+# build time. base's job stops at the environment; here it hands off.
+#
+# The installer runs as the ubuntu run-user, from /workspace: that is what lets
+# it place the CLIs and helper scripts under ~/.local/bin and seed config into
+# this user's home — ~/.claude/settings.json, ~/.claude.json (onboarding plus
+# trust for /workspace), ~/.codex/config.toml — answering the first-run dialogs
+# a headless container cannot. (Claude Code also refuses to run under root, so
+# the agent layer belongs to this unprivileged user regardless.)
+#
+# H_AGENT_VERSION pins the whole agent layer — CLIs, scripts and config — to a
+# single h-agent commit for a reproducible image; it tracks main by default.
+# h-agent is licensed separately (PolyForm Noncommercial 1.0.0) — see NOTICE.
 USER ubuntu
 ENV HOME=/home/ubuntu
-RUN curl -fsSL https://claude.ai/install.sh | bash \
-    && curl -fsSL https://chatgpt.com/codex/install.sh | CODEX_NON_INTERACTIVE=1 sh \
-    && curl -fsSL https://antigravity.google/cli/install.sh | bash
-
-ENV PATH="/home/ubuntu/.local/bin:/home/ubuntu/.codex/bin:${PATH}"
-
-# Claude Code keeps first-run state in ~/.claude.json and treats a missing file
-# as a first run: the theme picker comes up before the CLI is usable, which a
-# non-interactive container cannot answer.
-#
-# The "Do you trust this folder?" prompt is keyed by absolute path, so it cannot
-# be answered for directories that do not exist yet — but WORKDIR below is
-# /workspace, which is where an agent starts unless told otherwise, and that one
-# is known now. Anywhere else still prompts on first use.
-#
-# Merged rather than written flat, because this file is also where the CLI
-# later keeps machineID, the logged-in account and per-project history —
-# overwriting it wholesale is only safe while it is still empty.
-RUN tmp="$(mktemp)" \
-    && { [ -s "$HOME/.claude.json" ] && cat "$HOME/.claude.json" || echo '{}'; } \
-       | jq '.hasCompletedOnboarding = true \
-             | .projects["/workspace"].hasTrustDialogAccepted = true \
-             | .projects["/workspace"].hasCompletedProjectOnboarding = true' > "$tmp" \
-    && mv "$tmp" "$HOME/.claude.json"
-
-# Helpers come from the h-agent project, fetched from its repository at build
-# time (the same model as the agent CLIs above) rather than vendored here, so an
-# h-agent release is adopted simply by rebuilding this image. install.sh puts
-# h-agent, seedProfile, setupConfigDir, h-agent-capture and their shared library
-# on PATH under /usr/local/bin. Installing the CLIs and seeding their config are
-# this image's job, not h-agent's, so both are turned off — base already does
-# them above and below. install.sh is fetched from the same ref it installs, so
-# the installer and the installed scripts always match.
-#
-# H_AGENT_VERSION pins the ref: set it to an h-agent tag or commit for a
-# reproducible image. It tracks main by default. h-agent is licensed separately
-# (PolyForm Noncommercial 1.0.0) — see NOTICE.
-USER root
+ENV PATH="/home/ubuntu/.local/bin:${PATH}"
 ARG H_AGENT_VERSION=main
-RUN curl -fsSL "https://raw.githubusercontent.com/h-network/h-agent/${H_AGENT_VERSION}/install.sh" \
-      | H_AGENT_INSTALL_CLIS=0 H_AGENT_SEED_CONFIG=0 \
-        H_AGENT_VERSION="${H_AGENT_VERSION}" PREFIX=/usr/local bash
+RUN cd /workspace \
+    && curl -fsSL "https://raw.githubusercontent.com/h-network/h-agent/${H_AGENT_VERSION}/install.sh" \
+       | H_AGENT_VERSION="${H_AGENT_VERSION}" PREFIX="$HOME/.local" bash
 
-# smokeTest stays vendored here — it tests this image's own entry points, so it
-# belongs to base, not to h-agent.
-COPY smoketest.sh /usr/local/bin/smokeTest
+# base's own files. smokeTest verifies the finished image (build-time QA, so it
+# belongs to base, not h-agent) and goes on PATH so it can be re-run in a live
+# container. The licence ships beside it per Apache-2.0 section 4(a); NOTICE
+# records the third-party software in the image, TRADEMARKS.md the mark policy.
+USER root
+COPY h-app/smoketest.sh /usr/local/bin/smokeTest
 RUN chmod 755 /usr/local/bin/smokeTest
-
-# Apache-2.0 section 4(a) asks that recipients of the work get a copy of the
-# licence. The scripts above are the work, so the licence ships beside them.
-# NOTICE records that the rest of the image is third-party software under its
-# own terms. TRADEMARKS.md defines the project's trademark policy.
 COPY LICENSE NOTICE TRADEMARKS.md /usr/share/doc/h-network-base/
+
+# tmux is environment, not agentic, so its config stays base's. Last, so
+# editing it rebuilds only this cheap layer.
 USER ubuntu
-
-# CLI defaults for unattended use. Both CLIs stop on a first-run dialog that a
-# headless container cannot answer — the theme picker and the bypass-permissions
-# acceptance for claude, the update prompt for codex — and a stopped agent looks
-# identical to an idle one: no error, no exit code, no log line.
-#
-# These are defaults, not policy: a consumer that ships its own settings.json
-# replaces this file wholesale.
-COPY --chown=ubuntu:ubuntu claude-settings.json /home/ubuntu/.claude/settings.json
-COPY --chown=ubuntu:ubuntu codex-config.toml /home/ubuntu/.codex/config.toml
-
-# tmux config — last, so editing it rebuilds only this cheap layer
-COPY --chown=ubuntu:ubuntu tmux.conf /home/ubuntu/.tmux.conf
+COPY --chown=ubuntu:ubuntu h-app/tmux.conf /home/ubuntu/.tmux.conf
 
 # Fail the build if the entry points a consumer calls are missing or broken.
 # Runs as ubuntu, after everything is in place, so it checks the image as it

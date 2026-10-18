@@ -7,7 +7,7 @@ Generated locally rather than fetched from shields.io, so the README makes no
 requests outside github.com. Two styles, matching shields: `for-the-badge`
 (tall, uppercase, letter-spaced) and `flat-square`.
 
-    python3 docs/assets/mkbadges.py docs/assets/badges
+    python3 assets/mkbadges.py assets/badges
 
 Widths come from an approximate Verdana advance table, not real font metrics —
 close enough at these sizes, but eyeball a render after changing any text.
@@ -76,7 +76,7 @@ def badge(label, value, color, path, style="flat-square", label_color="#555"):
 
 
 if __name__ == "__main__":
-    out = sys.argv[1] if len(sys.argv) > 1 else "docs/assets/badges"
+    out = sys.argv[1] if len(sys.argv) > 1 else "assets/badges"
     B = "for-the-badge"
     F = "flat-square"
 

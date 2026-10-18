@@ -2,6 +2,7 @@
 .gitignore
 README.md
 compose.yaml
+assets
 .env
 .env.example
 *.tar.gz

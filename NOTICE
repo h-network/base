@@ -1,21 +1,24 @@
 This project is licensed by H-Network under the terms in `LICENSE` (Apache License 2.0).
 
 The Apache License covers the original files in this repository: the
-Dockerfile, compose file, the smokeTest script, tmux configuration, CLI config
-seeds (claude-settings.json, codex-config.toml), workflow, and documentation.
+Dockerfile, compose file, the smokeTest script, tmux configuration, workflow,
+and documentation.
 
 It does NOT cover the third-party software that the build installs into the
 container image. That software is redistributed under its own separate terms,
 which are NOT covered by this project's license:
 
-- h-agent (`h-agent`, `seedProfile`, `setupConfigDir`, `h-agent-capture`, and
-  their shared library) (https://github.com/h-network/h-agent) — the agent
-  launcher and profile helpers, fetched from the h-agent repository at build
-  time rather than vendored here. PolyForm Noncommercial License 1.0.0.
-  Copyright (c) 2026 h-network. Both projects are h-network's, but h-agent is
-  licensed on its own separate terms: this repository is free to use under
-  Apache 2.0, while the h-agent scripts bundled into the image remain governed
-  by their noncommercial license.
+- h-agent (https://github.com/h-network/h-agent) — the agent launcher and
+  profile helpers (`h-agent`, `seedProfile`, `setupConfigDir`, `h-agent-capture`,
+  and their shared library) plus the installer that places the whole agent layer
+  in the image. The build runs that installer, fetched from the h-agent
+  repository, and it installs the agent CLIs listed below and seeds their
+  configuration as well. The h-agent scripts are under the PolyForm
+  Noncommercial License 1.0.0, Copyright (c) 2026 h-network. Both projects are
+  h-network's, but h-agent is licensed on its own separate terms: this
+  repository is free to use under Apache 2.0, while the h-agent scripts bundled
+  into the image remain governed by their noncommercial license. The CLIs it
+  installs keep their own vendor terms, below.
 
 - Ubuntu 24.04 and the packages installed from its archives — a mix of
   licenses, recorded per package in /usr/share/doc/<package>/copyright
