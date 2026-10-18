@@ -17,6 +17,11 @@ ENV DEBIAN_FRONTEND=noninteractive \
     LC_ALL=en_US.UTF-8 \
     TZ=Europe/Amsterdam
 
+# Advertise truecolor so colour-detecting tools (h-agent's banner, ls, git, …)
+# light up 24-bit colour. A plain `docker run` leaves this unset otherwise, and
+# they fall back to monochrome even on a capable terminal.
+ENV COLORTERM=truecolor
+
 # ca-certificates, curl, sudo and locales aren't on the list below but are
 # needed to make it work: TLS, the agent-CLI installers, scripts that shell out
 # to sudo, and UTF-8 output.
