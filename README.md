@@ -279,6 +279,13 @@ If you do bind-mount a host directory, note that the image is uid 1000 — on a
 host where you are not uid 1000, writes will fail. Either `chown -R 1000:1000`
 the directory or run with `--user $(id -u):$(id -g)`.
 
+> [!NOTE]
+> Those volumes persist `~/.claude` and `~/.codex`, where h-agent's installer
+> seeds config at build time. A named volume is seeded only when it is **first
+> created**, so after pulling or building a newer image, run
+> `docker compose down -v` to recreate the volumes and pick up the re-seeded
+> config. That also clears stored logins, so you re-authenticate afterward.
+
 </details>
 
 <details open>
@@ -346,7 +353,8 @@ NOTICE                      what the licence covers, and what it does not
 TRADEMARKS.md               trademark policy for the project name
 compose.yaml                build + run, named volumes
 h-app/smoketest.sh          → /usr/local/bin/smokeTest, and run during the build
-h-app/tmux.conf             → ~/.tmux.conf
+h-app/tmux.conf             → ~/.tmux.conf (branded status badge + window title)
+h-app/motd                  → /usr/local/bin/h-motd, the login banner
 .github/workflows/build.yml builds, watches h-agent, and publishes to GHCR
 assets/banner.svg           the banner above
 assets/badges/              the badges above — self-hosted, not shields.io, so

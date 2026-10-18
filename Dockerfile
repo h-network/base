@@ -86,6 +86,21 @@ RUN cd /workspace \
 USER root
 COPY h-app/smoketest.sh /usr/local/bin/smokeTest
 RUN chmod 755 /usr/local/bin/smokeTest
+
+# Login banner (h-app/motd), shown once per interactive terminal via a hook in
+# /etc/bash.bashrc. Gated to interactive shells on a TTY and to once per session
+# (an exported guard), so it never leaks into an agent's output or a piped
+# command. Pure presentation — no network, no side effects.
+COPY h-app/motd /usr/local/bin/h-motd
+RUN chmod 755 /usr/local/bin/h-motd \
+    && printf '%s\n' \
+       '' \
+       '# h-network/base: show the login banner once, for interactive terminals only' \
+       'if [ -z "${H_MOTD_SHOWN:-}" ] && [ -t 1 ]; then' \
+       '    case $- in *i*) command -v h-motd >/dev/null 2>&1 && h-motd; export H_MOTD_SHOWN=1 ;; esac' \
+       'fi' \
+       >> /etc/bash.bashrc
+
 COPY LICENSE NOTICE TRADEMARKS.md /usr/share/doc/h-network-base/
 
 # tmux is environment, not agentic, so its config stays base's. Last, so

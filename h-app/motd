@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 h-network
+#
+# h-network/base login banner. Printed once per interactive session by the hook
+# that the Dockerfile adds to /etc/bash.bashrc. Pure display: no network, no
+# side effects, so it is safe to run from any shell.
+#
+# The wordmark and tagline match the repository banner (assets/banner.svg).
+# Truecolor is used (the image sets tmux-256color + Tc); a terminal that ignores
+# the escapes still shows the plain glyphs.
+
+g=$'\033[38;2;34;197;94m'    # #22C55E  green  — the wordmark
+c=$'\033[38;2;86;212;221m'   # #56D4DD  cyan   — the tagline
+d=$'\033[38;2;148;163;184m'  # #94A3B8  slate  — info labels
+r=$'\033[0m'
+
+printf '\n'
+printf '  %s██████╗  █████╗ ███████╗███████╗%s\n' "$g" "$r"
+printf '  %s██╔══██╗██╔══██╗██╔════╝██╔════╝%s\n' "$g" "$r"
+printf '  %s██████╔╝███████║███████╗█████╗  %s\n' "$g" "$r"
+printf '  %s██╔══██╗██╔══██║╚════██║██╔══╝  %s\n' "$g" "$r"
+printf '  %s██████╔╝██║  ██║███████║███████╗%s\n' "$g" "$r"
+printf '  %s╚═════╝ ╚═╝  ╚═╝╚══════╝╚══════╝%s\n' "$g" "$r"
+printf '\n'
+printf '  %sh-network/base // general-purpose dev container for the agent CLIs%s\n' "$c" "$r"
+printf '\n'
+printf '  %sAgents%s     claude · codex · agy\n' "$d" "$r"
+printf '  %sHelpers%s    seedProfile · setupConfigDir · h-agent-capture\n' "$d" "$r"
+printf '  %sStart%s      h-agent\n' "$d" "$r"
+printf '  %sWorkspace%s  /workspace\n' "$d" "$r"
+printf '  %sDocs%s       github.com/h-network/base\n' "$d" "$r"
+printf '\n'
