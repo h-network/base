@@ -7,6 +7,16 @@
 # (publishes :X.Y.Z, :X and :latest). Free on this repo — Actions minutes and
 # GHCR storage are unmetered for public repositories.
 #
+# It also watches h-agent on a schedule: every run resolves h-agent's current
+# main commit and builds the image pinned to it (H_AGENT_VERSION below), which
+# both busts the Docker layer cache for the `RUN curl ... install.sh` step — so
+# the new h-agent is actually refetched — and records which h-agent commit the
+# image was built from. On a scheduled run the build is skipped when that
+# commit has not changed since the last build, so an unchanged poll costs only
+# a few seconds and publishes nothing. This needs no cross-repo token: reading a
+# public repo's commit is unauthenticated, and the rebuild is this same repo's
+# own workflow. It generalizes to any upstream repo, not just one you own.
+#
 # A newly published GHCR package defaults to PRIVATE even from a public repo,
 # and consumers get `denied` until it is made public by hand in the repo's
 # package settings. That has been done for this package; a fork will have to do
@@ -20,10 +30,15 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    # Hourly watch of h-agent. Cheap: an unchanged commit skips the build (see
+    # the "Decide" step). Adjust the cadence here — it only affects latency.
+    - cron: '17 * * * *'
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  UPSTREAM: https://github.com/h-network/h-agent.git
 
 jobs:
   build:
@@ -35,19 +50,58 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      # The commit this image will be built against. Reading a public repo's
+      # ref needs no credentials. On every event the build pins to this exact
+      # h-agent commit, so the image is reproducible and the install.sh layer
+      # cache is keyed to it.
+      - name: Resolve h-agent main commit
+        id: hagent
+        run: |
+          ref="$(git ls-remote "$UPSTREAM" refs/heads/main | cut -f1)"
+          [ -n "$ref" ] || { echo "could not resolve h-agent main" >&2; exit 1; }
+          echo "ref=$ref" >> "$GITHUB_OUTPUT"
+          echo "h-agent main is at $ref"
+
+      # Have we already built this h-agent commit? A cache hit on this key means
+      # yes. The marker file is written only when we decide to build, and the
+      # cache is saved at the end of the job, so the next run sees this commit
+      # as already built.
+      - name: Check last built h-agent commit
+        id: seen
+        uses: actions/cache@v4
+        with:
+          path: .h-agent-built
+          key: h-agent-built-${{ steps.hagent.outputs.ref }}
+
+      # Build on any event except a scheduled run whose h-agent commit is
+      # unchanged. That is the whole point of the watch: a poll that finds no
+      # change does nothing.
+      - name: Decide whether to build
+        id: decide
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "${{ steps.seen.outputs.cache-hit }}" = "true" ]; then
+            echo "build=false" >> "$GITHUB_OUTPUT"
+            echo "h-agent unchanged since the last build — skipping."
+          else
+            echo "build=true" >> "$GITHUB_OUTPUT"
+            printf '%s\n' "${{ steps.hagent.outputs.ref }}" > .h-agent-built
+          fi
+
       # arm64 is built under emulation on the amd64 runner; the agent-CLI
       # installers are the slow part and they run twice, once per platform.
       - name: Set up QEMU
+        if: steps.decide.outputs.build == 'true'
         uses: docker/setup-qemu-action@v4
 
       - name: Set up Buildx
+        if: steps.decide.outputs.build == 'true'
         uses: docker/setup-buildx-action@v4
 
       # GITHUB_TOKEN is minted per-run and scoped by the permissions block
       # above — no secret to configure. Skipped on pull_request, which builds
       # but does not push.
       - name: Log in to GHCR
-        if: github.event_name != 'pull_request'
+        if: steps.decide.outputs.build == 'true' && github.event_name != 'pull_request'
         uses: docker/login-action@v4
         with:
           registry: ${{ env.REGISTRY }}
@@ -58,6 +112,7 @@ jobs:
       # matches none of the patterns below and would publish nothing.
       - name: Derive tags
         id: meta
+        if: steps.decide.outputs.build == 'true'
         uses: docker/metadata-action@v6
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
@@ -67,11 +122,19 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
             type=raw,value=latest,enable={{is_default_branch}}
+          labels: |
+            h-network.base.h-agent-revision=${{ steps.hagent.outputs.ref }}
 
       - name: Build and push
+        if: steps.decide.outputs.build == 'true'
         uses: docker/build-push-action@v7
         with:
           context: .
+          # Pin the image to the h-agent commit resolved above. Passing the SHA
+          # (not "main") is what refetches a new h-agent: the arg is part of the
+          # install.sh layer's cache key.
+          build-args: |
+            H_AGENT_VERSION=${{ steps.hagent.outputs.ref }}
           platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
