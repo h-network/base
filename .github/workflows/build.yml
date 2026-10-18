@@ -68,7 +68,7 @@ jobs:
       # as already built.
       - name: Check last built h-agent commit
         id: seen
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .h-agent-built
           key: h-agent-built-${{ steps.hagent.outputs.ref }}
