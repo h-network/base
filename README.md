@@ -20,7 +20,7 @@
 
 Built for sandbox work — spin one up on any machine with Docker and get the same environment every time, without reinstalling toolchains by hand.
 
-[Quick start](#-quick-start) · [What's inside](#-whats-inside) · [Helpers](#-helpers) · [Details](#-details-worth-knowing) · [Layout](#-layout)
+[Quick start](#-quick-start) · [What's inside](#-whats-inside) · [Helpers](#-helpers) · [Details](#-details-worth-knowing) · [Layout](#-layout) · [Walkthrough](https://github.com/h-network/base/wiki/Clean-install-walkthrough)
 
 </div>
 
@@ -67,6 +67,11 @@ The agent layer — the CLIs, their config and the helper commands — is instal
 by [h-agent](https://github.com/h-network/h-agent)'s installer and pinned by
 `H_AGENT_VERSION` (default `main`), so a rebuild refreshes it to whatever that
 ref specifies. A published tag is frozen at whenever it was built.
+
+> [!TIP]
+> New here? The **[clean-install walkthrough](https://github.com/h-network/base/wiki/Clean-install-walkthrough)**
+> on the wiki runs the whole thing from nothing to a working agent, with the
+> real terminal output at each step.
 
 ## 📦 What's inside
 
